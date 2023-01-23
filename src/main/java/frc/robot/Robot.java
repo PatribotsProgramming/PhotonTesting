@@ -7,15 +7,29 @@ package frc.robot;
 import java.util.List;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
 import org.photonvision.targeting.PhotonTrackedTarget;
+import org.photonvision.targeting.TargetCorner;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.Topic;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.utils.JSON;
+
 
 
 
@@ -26,6 +40,12 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * project.
  */
 public class Robot extends TimedRobot {
+  private static final double TARGET_HEIGHT_METERS = 0;
+
+  private static final double CAMERA_PITCH_RADIANS = 0;
+
+  private static final double CAMERA_HEIGHT_METERS = 0;
+
   private Command m_autonomousCommand;
 
   private RobotContainer m_robotContainer;
@@ -33,6 +53,13 @@ public class Robot extends TimedRobot {
   PhotonCamera camera = new PhotonCamera("Patribots4738");
 
   NetworkTable table = NetworkTableInstance.getDefault().getTable("photonvision");
+
+  XboxController operator = new XboxController(0);
+
+  
+  JSON json = new JSON("data.json");
+
+  // SmartDashboard dashboard = new SmartDashboard();
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -111,27 +138,52 @@ public class Robot extends TimedRobot {
   @Override
   public void testInit() {
     // Cancels all running commands at the start of test mode.
-    /**
-    CommandScheduler.getInstance().cancelAll();
-    var result = camera.getLatestResult();
-    PhotonTrackedTarget target = camera.getLatestResult().getBestTarget();
-    double yaw = target.getYaw();
-    double pitch = target.getPitch();
-    double area = target.getArea();
-    double skew = target.getSkew();
-    double distance = target.getDistance();
-    Transform2d pose = target.getCameraToTarget();
-    */
     
+
+    CommandScheduler.getInstance().cancelAll();
+
+    var result = camera.getLatestResult();
+
+
   }
 
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
-    List<Topic> topics = table.getTopics();
-    for (Topic topic : topics){
-      System.out.println(topic.getName());
+    if(operator.getAButton()) {
+
+      var result = camera.getLatestResult();
+
+      if(result.hasTargets()) {
+        double x = result.getBestTarget().getBestCameraToTarget().getTranslation().getX();
+        double y = result.getBestTarget().getBestCameraToTarget().getTranslation().getY();
+        System.out.println("Target: " + result.getBestTarget().getBestCameraToTarget());
+        SmartDashboard.putNumber("X",x);
+        SmartDashboard.putNumber("Y",y);
+        json.newLevel();
+        json.put("X", Double.toString(x));
+        json.put("Y", Double.toString(y));        
+        json.put("Time", Double.toString(Timer.getFPGATimestamp()));
+        json.closeLevel();
+        
+      }else{
+        SmartDashboard.putNumber("X", -1);
+        SmartDashboard.putNumber("Y", -1);
+        json.newLevel();
+        json.put("X", "-1");
+        json.put("Y", "-1");
+        json.closeLevel();
+      }
+      
     }
+    if (operator.getBButtonPressed()){
+      String data = json.getData();
+      SmartDashboard.putString("data", data);
+      System.out.println(data);
+    }
+    
+
+    
     
   }
 
