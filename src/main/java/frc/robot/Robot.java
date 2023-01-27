@@ -42,11 +42,8 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.utils.JSON;
+import frc.robot.subsystems.*;
 
 
 
@@ -64,38 +61,32 @@ public class Robot extends TimedRobot {
 
   private static final double CAMERA_HEIGHT_METERS = 0;
 
-  private static final double rotDeadzone = 0.1;
+  private static final double rotDeadzone = 0.5;
 
   private static final double xDeadZone = 0.1;
 
-  private Command m_autonomousCommand;
+  // private RobotContainer m_robotContainer;
 
-  private RobotContainer m_robotContainer;
-
-  PhotonCamera camera = new PhotonCamera("Patribots4738");
+  // PhotonCamera camera = new PhotonCamera("Patribots4738");
 
   NetworkTable table = NetworkTableInstance.getDefault().getTable("photonvision");
 
   XboxController operator = new XboxController(0);
 
+  Vision vision = new Vision();
+
   
-  JSON json = new JSON("data.json");
+  // JSON json = new JSON("data.json");
 
   @Override
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
-    m_robotContainer = new RobotContainer();
+    // m_robotContainer = new RobotContainer();
   }
 
   @Override
-  public void robotPeriodic() {
-    // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
-    // commands, running already-scheduled commands, removing finished or interrupted commands,
-    // and running subsystem periodic() methods.  This must be called from the robot's periodic
-    // block in order for anything in the Command-based framework to work.
-    CommandScheduler.getInstance().run();
-  }
+  public void robotPeriodic() {}
 
   @Override
   public void disabledInit() {}
@@ -104,14 +95,7 @@ public class Robot extends TimedRobot {
   public void disabledPeriodic() {}
 
   @Override
-  public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
-
-    // schedule the autonomous command (example)
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
-  }
+  public void autonomousInit() {}
 
   @Override
   public void autonomousPeriodic() {}
@@ -124,135 +108,27 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopPeriodic() {
 
-    // Use the A button to acrivate the allignment process
-    if (operator.getAButton()){
 
-      // Get the latest data from photonvision
-      PhotonPipelineResult result = camera.getLatestResult();
+    if (operator.getLeftBumper() && operator.getRightBumper()){
 
-      // Make sure that the camera has tags in view
-      if (result.hasTargets()){
+      operator.setRumble(RumbleType.kBothRumble, 0.1);
 
-        PhotonTrackedTarget target = result.getBestTarget();
+    }
 
-        double yaw = target.getYaw();
-        double pitch = target.getPitch();
-        Transform3d pose = target.getBestCameraToTarget();
-        int tagID = target.getFiducialId();
-        
-        // Direction is Left: -1, Right: 1, Default: 0
-        int direction = 0;
+    else if (operator.getLeftBumper()){
 
-        if (yaw > rotDeadzone){
-          // Rotate the robot in the negative yaw direction
-        }
-        
-        else if (yaw < -rotDeadzone){
-          // Rotate the robot in the positive yaw direction
-        }
+      operator.setRumble(RumbleType.kLeftRumble, 1);
+      operator.setRumble(RumbleType.kRightRumble, 0);
 
-        /**
-         * The operator has two buttons they can press, 
-         * one to move to the position to the left of the tag or to the right.
-         * 
-         * The distances for these positions are set as an array tagPositions,
-         * which follows format:
-         * {1:[leftDist, rightDist], 2:[leftDist, rightDist], ...}
-         */
+    } else if (operator.getRightBumper()){
 
-        /**
-         *  A visual representation of the apriltag positions
-         *  / --------------------------------------------- \ 
-         *  5                      |                        4
-         *  |                      |                        |
-         *  |                      |                        |
-         *  6                      |                        3
-         *  |                      |                        |
-         *  7                      |                        2
-         *  |                      |                        |
-         *  8                      |                        1
-         *  \ --------------------------------------------- /
-         */
+      operator.setRumble(RumbleType.kRightRumble, 1);
+      operator.setRumble(RumbleType.kLeftRumble, 0);
 
-        else {
-
-          // Get the direction the operator wants to move
-          if (operator.getLeftBumper()){
-            direction = -1;
-          }
-          else if (operator.getRightBumper()){
-            direction = 1;
-          }
-          
-            // There are different distances for each tag
-            switch(tagID){
-              case 1:
-                if (direction == 1){
-                  // Move the robot right x amount
-                }
-                else if (direction == -1){
-                  // Move the robot left x amount
-                }
-                break;
-
-              case 2:
-                if (direction == 1){
-                  // Move the robot right x amount
-                }
-                else if (direction == -1){
-                  // Move the robot left x amount
-                }
-                break;
-              
-              case 3:
-                if (direction == 1){
-                  // Move the robot right x amount
-                }
-                else if (direction == -1){
-                  // Move the robot left x amount
-                }
-                break;
-              
-              case 6:
-                if (direction == 1){
-                  // Move the robot right x amount
-                }
-                else if (direction == -1){
-                  // Move the robot left x amount
-                }
-                break;
-
-              case 7:
-                if (direction == 1){
-                  // Move the robot right x amount
-                }
-                else if (direction == -1){
-                  // Move the robot left x amount
-                }
-                break;
-
-              case 8:
-                if (direction == 1){
-                  // Move the robot right x amount
-                }
-                else if (direction == -1){
-                  // Move the robot left x amount
-                }
-                break;
-              
-              // Makes the controller buzz if pointed at an invalid tag
-              default:
-                operator.setRumble(RumbleType.kBothRumble, 0.5);
-
-            }
-          }
-        }
-      }
-
-      // Make the controller buzz if there are no targets in view
-      else {
-        operator.setRumble(RumbleType.kBothRumble, 0.5);
-      }
+    } else {
+      
+      operator.setRumble(RumbleType.kBothRumble, 0);
+    }
 
     }
 
@@ -267,9 +143,9 @@ public class Robot extends TimedRobot {
     // Cancels all running commands at the start of test mode.
     
 
-    CommandScheduler.getInstance().cancelAll();
+    // CommandScheduler.getInstance().cancelAll();
 
-    var result = camera.getLatestResult();
+    // var result = camera.getLatestResult();
 
 
   }
@@ -279,39 +155,69 @@ public class Robot extends TimedRobot {
   public void testPeriodic() {
     if(operator.getAButton()) {
 
-      var result = camera.getLatestResult();
+      operator.setRumble(RumbleType.kLeftRumble, 0);
 
-      if(result.hasTargets()) {
-        double x = result.getBestTarget().getBestCameraToTarget().getTranslation().getX();
-        double y = result.getBestTarget().getBestCameraToTarget().getTranslation().getY();
-        System.out.println("Target: " + result.getBestTarget().getBestCameraToTarget());
-        SmartDashboard.putNumber("X",x);
-        SmartDashboard.putNumber("Y",y);
-        json.newLevel();
-        json.put("X", Double.toString(x));
-        json.put("Y", Double.toString(y));        
-        json.put("Time", Double.toString(Timer.getFPGATimestamp()));
-        json.closeLevel();
-        
-      }else{
-        SmartDashboard.putNumber("X", -1);
-        SmartDashboard.putNumber("Y", -1);
-        json.newLevel();
-        json.put("X", "-1");
-        json.put("Y", "-1");
-        json.closeLevel();
+      vision.pereodic();
+
+      double x = -1;
+      double y = -1;
+      double roll = -1;
+      double yaw = -1;
+
+      if (vision.hasTargets()){
+        x = vision.getX();
+        y = vision.getY();
+        roll = vision.getPitch();
+        // Positive yaw and negative yaw are reversed (For whatever godsaken reason)
+        yaw = vision.getYaw();
+
+        System.out.println("X: " + String.format("%.3f", x) + 
+                          " Y: " + String.format("%.3f", y) +
+                          " Roll: " + String.format("%.3f", roll) +
+                          " Yaw: " + String.format("%.3f", yaw));
+
+        // Fix the yaw of the robot (Rotate left and right)
+        if (yaw > rotDeadzone){
+
+          System.out.println("Rotate right");
+
+        } 
+
+        else if (yaw < -rotDeadzone){
+
+          System.out.println("Rotate left");
+
+        } 
+        else {
+
+          System.out.println("Perfectly acceptable");
+
+          if (operator.getLeftBumperPressed()){
+
+            System.out.println("Moving to left position");
+            System.out.println("--------------------------------------------------");
+            
+
+          }
+          else if (operator.getRightBumperPressed()){
+
+            System.out.println("Moving to right position");
+            System.out.println("--------------------------------------------------");
+
+          }
+
+
+        }
+
+      } else {
+
+        operator.setRumble(RumbleType.kLeftRumble, 0.5);
+
       }
       
+    } else {
+      operator.setRumble(RumbleType.kBothRumble, 0);
     }
-    if (operator.getBButtonPressed()){
-      String data = json.getData();
-      SmartDashboard.putString("data", data);
-      System.out.println(data);
-    }
-    
-
-    
-    
   }
 
   /** This function is called once when the robot is first started up. */

@@ -6,13 +6,18 @@ import java.util.HashMap;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.Trajectory.State;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import frc.utils.JSON;
 
 import frc.robot.subsystems.Vision;
-import frc.robot.hardware.Swerve;
+// import frc.robot.hardware.Swerve;
 
 public class AutoAllignment {
     private static final double rotDeadzone = 0.1;
@@ -27,17 +32,33 @@ public class AutoAllignment {
 
     XboxController operator;
 
-    Swerve swerve;
+    // Swerve swerve;
 
 
-    public AutoAllignment(XboxController operator, Swerve driveTrain){
+    public AutoAllignment(XboxController operator){
 
         this.operator = operator;
 
-        this.swerve = driveTrain;
+        // this.swerve = driveTrain;
 
     }
+/*    public ChassisSpeeds getAlignSpeeds(int tagID) {
+     
+      HolonomicDriveController HDC = SwerveTrajectory.getHDC();
 
+      State aprilPos = visionSubsystem.getAprilPos(tagID);
+
+      ChassisSpeeds _speeds = HDC.calculate(
+               swerve._odometry.getPoseMeters(), 
+              (aprilPos),
+              (aprilPos.poseMeters.getRotation()));
+
+      swerve.drive(_speeds.vxMetersPerSecond,
+      _speeds.vyMetersPerSecond, 
+      _speeds.omegaRadiansPerSecond,false);
+
+    }
+ */
 
     public void pereodic(){
 
@@ -60,12 +81,12 @@ public class AutoAllignment {
     
             if (yaw > rotDeadzone){
               // Rotate the robot in the negative yaw direction
-              swerve.drive(0, 0, -allignmentRotSpeed, true);
+              // swerve.drive(0, 0, -allignmentRotSpeed, true);
             }
             
             else if (yaw < -rotDeadzone){
               // Rotate the robot in the positive yaw direction
-              swerve.drive(0, 0, allignmentRotSpeed, true);
+              // swerve.drive(0, 0, allignmentRotSpeed, true);
             }
     
             /**
@@ -98,15 +119,15 @@ public class AutoAllignment {
               // Check the horizontal allignment of the robot relative to the tag
               if (x > xDeadZone){
                 // Move the robot left at x speed
-                swerve.drive(-allignmentSpeed, 0, 0, true);
+                // swerve.drive(-allignmentSpeed, 0, 0, true);
               }
               else if (x < -xDeadZone){
                 // Move the robot right at x speed
-                swerve.drive(allignmentSpeed, 0, 0, true);
+                // swerve.drive(allignmentSpeed, 0, 0, true);
               }
               else {
                 // Stop the robot
-                swerve.drive(0, 0, 0, true);
+                // swerve.drive(0, 0, 0, true);
               }
     
               // The operator chooses whether to go to the cone position to the left or right of the tag
@@ -121,7 +142,7 @@ public class AutoAllignment {
               if (direction == -1){
                 
                 // Move the robot to the left cone position
-                swerve.drive(0, 0, 0, true);
+                // swerve.drive(0, 0, 0, true);
 
               }
             }
@@ -132,4 +153,5 @@ public class AutoAllignment {
             operator.setRumble(RumbleType.kBothRumble, 0.5);
           }
       }
+  }
 }
